@@ -1,24 +1,24 @@
 #include "Quaternion.h"
+#include "../AssertMacro/AssertMacro.h"
 #include "../Mathf/Mathf.h"
 #include <format>
 
 #pragma region constructor
 Quaternion::Quaternion(const float _x, const float _y, const float _z, const float _w)
 {
-	x = Mathf::Clamp101(_x);
-	y = Mathf::Clamp101(_y);
-	z = Mathf::Clamp101(_z);
-	w = Mathf::Clamp101(_w);
+	x = _x;
+	y = _y;
+	z = _z;
+	w = _w;
 }
 Quaternion::Quaternion(const float _x, const float _y, const float _z) : Quaternion(_x, _y, _z, 0.0f) {}
 Quaternion::Quaternion(const float _x, const float _y) : Quaternion(_x, _y, 0.0f, 0.0f) {}
 Quaternion::Quaternion(const float _value)
 {
-	const float _clamp = Mathf::Clamp101(_value);
-	x = _clamp;
-	y = _clamp;
-	z = _clamp;
-	w = _clamp;
+	x = _value;
+	y = _value;
+	z = _value;
+	w = _value;
 }
 #pragma endregion constructor
 
@@ -29,20 +29,27 @@ float Quaternion::Dot(Quaternion& _a, Quaternion& _b)
 }
 float Quaternion::Angle(Quaternion& _a, Quaternion& _b)
 {
-	//TODO angle
+	const float _y = _a.y - _b.y; //b
+	const float _sqy = _y * _y; //b²
+	const float _sqa = _a.w * _a.w; //c²
+	const float _sqb = _b.w * _b.w; //a²
 
-	return 0.0f;
+	float _tot = (_sqb + _sqa - _sqy) / (2.0f * _b.w * _a.w);
+	_tot = Mathf::Clamp01(_tot);
+
+	return acos(_tot) * 180.0f / 3.14159265359f;
 }
 Quaternion Quaternion::Identity()
 {
-	return Quaternion(0, 0, 0, 1);
+	return Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 }
 Quaternion Quaternion::Conjugate(Quaternion& _value)
 {
-	_value.x = Mathf::Clamp101(-_value.x);
-	_value.y = Mathf::Clamp101(-_value.y);
-	_value.z = Mathf::Clamp101(-_value.z);
-	return Quaternion(_value.x, _value.y, _value.z, _value.w);
+	const float _x = (_value.x == 0.0f) ? 0.0f : -_value.x;
+	const float _y = (_value.y == 0.0f) ? 0.0f : -_value.y;
+	const float _z = (_value.z == 0.0f) ? 0.0f : -_value.z;
+	const float _w = (_value.w == 0.0f) ? 0.0f : -_value.w;
+	return Quaternion(_x, _y, _z, _w);
 }
 Quaternion Quaternion::Inverse(Quaternion& _value)
 {
@@ -59,8 +66,7 @@ Quaternion Quaternion::Inverse(Quaternion& _value)
 }
 Quaternion Quaternion::Lerp(Quaternion& _a, Quaternion& _b, const float _t)
 {
-	float _time = Mathf::Clamp101(_t);
-	_time = (_time < 0) ? 0 : _time;
+	float _time = Mathf::Clamp01(_t);
 	Quaternion _lerp = Quaternion(
 										_a.x + ((_b.x - _a.x) * _time),
 										_a.y + ((_b.y - _a.y) * _time),
@@ -83,14 +89,17 @@ Quaternion Quaternion::LerpUnclamped(Quaternion& _a, Quaternion& _b, const float
 }
 Quaternion Quaternion::CreateFromYawPitchRoll(const float _pitch, const float _yaw, const float _roll)
 {
-	Quaternion _rotPitch = Quaternion(_pitch, 0, 0, 0);
-	Quaternion _rotYaw = Quaternion(0, _yaw, 0, 0);
-	Quaternion _rotRoll = Quaternion(0, 0, _roll, 0);
-	Quaternion _result = Identity();
-	_result += _rotPitch;
-	_result += _rotYaw;
-	_result += _rotRoll;
-	return _result;
+	const float _cr = cos(_roll * 0.5f);
+	const float _sr = sin(_roll * 0.5f);
+	const float _cp = cos(_pitch * 0.5f);
+	const float _sp = sin(_pitch * 0.5f);
+	const float _cy = cos(_yaw * 0.5f);
+	const float _sy = sin(_yaw * 0.5f);
+	const float _rotPitch = _sy * _cp * _cr + _cy * _sp * _sr;
+	const float _rotYaw = _cy * _sp * _cr - _sy * _cp * _sr;
+	const float _rotRoll = _cy * _cp * _sr - _sy * _sp * _cr;
+	const float _rotScal = _cy * _cp * _cr + _sy * _sp * _sr;
+	return Quaternion(_rotPitch, _rotYaw, _rotRoll, _rotScal);
 }
 void Quaternion::Normalize()
 {
@@ -104,10 +113,10 @@ void Quaternion::Normalize()
 }
 void Quaternion::Set(const float _x, const float _y, const float _z, const float _w)
 {
-	x = Mathf::Clamp101(_x);
-	y = Mathf::Clamp101(_y);
-	z = Mathf::Clamp101(_z);
-	w = Mathf::Clamp101(_w);
+	x = _x;
+	y = _y;
+	z = _z;
+	w = _w;
 }
 float Quaternion::Length()
 {
@@ -130,8 +139,7 @@ std::string Quaternion::ToString() const
 #pragma region operator
 float& Quaternion::operator[](const int _index)
 {
-	//if (_index < 0 || _index > 3)
-		//return; //TODO macro
+	check (_index > 0 && _index < 4)
 	switch (_index)
 	{
 	case 0:
@@ -174,10 +182,10 @@ Quaternion Quaternion::operator=(Quaternion& _other)
 }
 Quaternion& Quaternion::operator-()
 {
-	x = Mathf::Clamp101(- x);
-	y = Mathf::Clamp101(-y);
-	z = Mathf::Clamp101(-z);
-	w = Mathf::Clamp101(-w);
+	x = (x == 0.0f) ? 0.0f : - x;
+	y = (y == 0.0f) ? 0.0f : - y;
+	z = (z == 0.0f) ? 0.0f : - z;
+	w = (w == 0.0f) ? 0.0f : - w;
 	return *this;
 }
 Quaternion& Quaternion::operator+=(Quaternion& _other)

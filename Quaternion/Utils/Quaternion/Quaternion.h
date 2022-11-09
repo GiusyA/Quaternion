@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 
 #define Epsilon 0.00001f
@@ -67,9 +68,9 @@ public:
 	/// <summary>
 	/// Return a quaternion of the requested rotation.
 	/// </summary>
-	/// <param name="_pitch">x-axis</param>
-	/// <param name="_yaw">y-axis</param>
-	/// <param name="_roll">z-axis</param>
+	/// <param name="_pitch">angle (degree) (x-axis)</param>
+	/// <param name="_yaw">angle (degree) (y-axis)</param>
+	/// <param name="_roll">angle (degree) (z-axis)</param>
 	static Quaternion CreateFromYawPitchRoll(const float _pitch, const float _yaw, const float _roll);
 	/// <summary>
 	/// Normalizes the quaternion.

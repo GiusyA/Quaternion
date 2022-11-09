@@ -133,6 +133,7 @@
     <ClCompile Include="Utils\Quaternion\Quaternion.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Utils\AssertMacro\AssertMacro.h" />
     <ClInclude Include="Utils\Mathf\Mathf.h" />
     <ClInclude Include="Utils\Quaternion\Quaternion.h" />
   </ItemGroup>
